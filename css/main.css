@@ -44,11 +44,17 @@ body {
 
 .regular-text {
     display: flex;
+    gap: 20px;
     margin-top: 20px;
     font-family: 'Montserrat', sans-serif;
     font-weight: 200;
     color: #FFF;
     font-size: 2em;
+}
+
+.regular-text a {
+    color: #FFF;
+    text-decoration: none;
 }
 
     .about-me a, .about-me a:active, .regular-text a, .regular-text a:active {

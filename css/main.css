@@ -44,7 +44,7 @@ body {
 
 .regular-text {
     display: flex;
-    gap: 40px;
+    gap: 25px;
     margin-top: 20px;
     font-family: 'Montserrat', sans-serif;
     font-weight: 200;

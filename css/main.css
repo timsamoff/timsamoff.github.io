@@ -333,6 +333,48 @@ body {
     }
 }
 
+.about-me {
+    color: #FFF;
+    line-height: 1.2;
+    width: 70%;
+    text-align: left;
+    font-weight: 700;
+    font-size: 3em;
+}
+
+.regular-text {
+    display: flex;
+    gap: 25px;
+    margin-top: 20px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 200;
+    color: #FFF;
+    font-size: .4em;
+}
+
+.regular-text a {
+    color: #FFF;
+    text-decoration: none;
+}
+
+.about-me a, .about-me a:active, .regular-text a, .regular-text a:active {
+    color: #FFF;
+    /* margin-left: 15px; */
+}
+
+/* .first {
+    margin-left: -12px !important;
+} */
+
+.about-me a:visited, .about-me a:visited, .regular-text a:visited, .regular-text a:visited {
+    color: #FFF;
+}
+
+.tim a:hover, .links a:hover {
+    color: #22ec36;
+    transition: .5s ease;
+}
+
 /* Small mobile screens */
 @media (max-width: 480px) {
     .about-me {

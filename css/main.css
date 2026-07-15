@@ -2,7 +2,7 @@
    by Tim Samoff
 */
 
-@import url('https://fonts.googleapis.com/css?family=Montserrat:200,700');
+@import url('https://fonts.googleapis.com/css?family=Montserrat:200,700&display=swap');
 
 :root {
     /* Main colors */
@@ -38,6 +38,8 @@ body {
     display: flex;
     align-items: center;
     margin-left: 10%; 
+    flex-wrap: wrap; /* Allow wrapping */
+    gap: 20px; /* Space when wrapped */
 }
 
 .container {
@@ -48,7 +50,8 @@ body {
     color: var(--color-text-primary); 
     line-height: 1.2; 
     font-weight: 700; 
-    font-size: 3em; 
+    font-size: 3em;
+    /* Removed white-space: nowrap to allow wrapping */
 }
 
 .extension-area {
@@ -58,6 +61,7 @@ body {
     opacity: 0;
     animation: fadeIn 0.5s ease-out forwards;
     animation-delay: 1s; 
+    flex-shrink: 0; /* Prevent shrinking */
 }
 
 .divider {
@@ -201,13 +205,13 @@ body {
     }
 
     .divider {
-        height: 140px; /* Increased to give more room */
+        height: 140px;
         width: 40px;
         flex-shrink: 0;
     }
 
     .projects-list {
-        height: 140px; /* Match divider height */
+        height: 140px;
         margin-left: 20px;
         flex: 1;
         overflow: hidden;
@@ -219,8 +223,8 @@ body {
 
     .projects-list li {
         gap: 12px;
-        font-size: 0.65em; /* Slightly smaller */
-        margin-bottom: 12px; /* Reduced spacing */
+        font-size: 0.65em;
+        margin-bottom: 12px;
     }
 
     .projects-list li .desc {
@@ -244,6 +248,7 @@ body {
     .about-me {
         font-size: 1.8em;
         line-height: 1.4;
+        /* Allow wrapping naturally */
     }
 
     .regular-text {

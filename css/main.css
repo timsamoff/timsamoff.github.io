@@ -261,17 +261,17 @@ body {
     }
 
     .divider {
-        height: 140px;
+        height: auto;
         width: 25px;
         margin-right: 10px;
         flex-shrink: 0;
-        align-self: flex-start;
-        margin-top: 5px;
+        align-self: center;
     }
 
     .chevron {
         transform: rotate(0deg);
         height: 100%;
+        min-height: 120px;
     }
 
     .projects-list {
@@ -284,7 +284,7 @@ body {
         padding: 0;
         flex: 1;
         box-sizing: border-box;
-        align-self: flex-start;
+        align-self: center;
     }
 
     .projects-list ul {

@@ -261,7 +261,7 @@ body {
     }
 
     .divider {
-        height: auto;
+        height: 180px;
         width: 25px;
         margin-right: 10px;
         flex-shrink: 0;
@@ -271,7 +271,6 @@ body {
     .chevron {
         transform: rotate(0deg);
         height: 100%;
-        min-height: 120px;
     }
 
     .projects-list {

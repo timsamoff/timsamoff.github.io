@@ -13,7 +13,7 @@
     --color-text-secondary: rgba(255, 255, 255, 0.5);
     --color-link-hover: #22ec36;
     
-    /* Black and white variants */
+    /* Black and white */
     --color-black: #000;
     --color-white: #FFF;
     
@@ -38,8 +38,8 @@ body {
     display: flex;
     align-items: center;
     margin-left: 10%; 
-    flex-wrap: wrap; /* Allow wrapping */
-    gap: 20px; /* Space when wrapped */
+    flex-wrap: wrap;
+    gap: 20px;
 }
 
 .container {
@@ -51,7 +51,6 @@ body {
     line-height: 1.2; 
     font-weight: 700; 
     font-size: 3em;
-    /* Removed white-space: nowrap to allow wrapping */
 }
 
 .extension-area {
@@ -61,7 +60,7 @@ body {
     opacity: 0;
     animation: fadeIn 0.5s ease-out forwards;
     animation-delay: 1s; 
-    flex-shrink: 0; /* Prevent shrinking */
+    flex-shrink: 0;
 }
 
 .divider {
@@ -226,17 +225,17 @@ body {
     }
 
     .about-me {
-        font-size: 2.5em;
+        font-size: 2.8em;
     }
 
     .divider {
-        height: 140px;
-        width: 40px;
+        height: 160px;
+        width: 45px;
         flex-shrink: 0;
     }
 
     .projects-list {
-        height: 140px;
+        height: 160px; /* Match divider height */
         margin-left: 20px;
         flex: 1;
         overflow: hidden;
@@ -247,13 +246,13 @@ body {
     }
 
     .projects-list li {
-        gap: 12px;
-        font-size: 0.65em;
-        margin-bottom: 12px;
+        gap: 14px;
+        font-size: 0.8em;
+        margin-bottom: 14px;
     }
 
     .projects-list li .desc {
-        font-size: 0.75em;
+        font-size: 0.85em;
         white-space: normal;
     }
 }
@@ -262,7 +261,7 @@ body {
 @media (max-width: 768px) {
     .main-wrapper {
         margin-left: 0;
-        padding: 15px;
+        padding: 20px;
         width: 100%;
     }
 
@@ -271,38 +270,37 @@ body {
     }
 
     .about-me {
-        font-size: 1.8em;
-        line-height: 1.4;
-        /* Allow wrapping naturally */
+        font-size: 2.2em;
+        line-height: 1.3;
     }
 
     .regular-text {
-        font-size: 0.5em;
-        margin-top: 15px;
+        font-size: 0.6em;
+        margin-top: 18px;
         flex-wrap: wrap;
     }
 
     .about-me a, .regular-text a {
-        margin-left: 12px;
+        margin-left: 14px;
     }
 
     .first {
-        margin-left: -8px !important;
+        margin-left: -10px !important;
     }
 
     .extension-area {
         margin-left: 0;
-        margin-top: 20px;
+        margin-top: 25px;
         flex-direction: row;
         align-items: center;
         width: 100%;
     }
 
     .divider {
-        height: 180px;
-        width: 30px;
+        height: 200px;
+        width: 35px;
         margin-bottom: 0;
-        margin-right: 15px;
+        margin-right: 18px;
         flex-shrink: 0;
         align-self: center;
     }
@@ -320,7 +318,7 @@ body {
         opacity: 1;
         overflow: visible;
         white-space: normal;
-        padding: 10px 0;
+        padding: 12px 0;
         flex: 1;
         align-self: center;
     }
@@ -333,22 +331,22 @@ body {
     .projects-list li {
         flex-direction: column;
         align-items: flex-start;
-        gap: 4px;
-        font-size: 0.9em;
-        margin-bottom: 18px;
+        gap: 5px;
+        font-size: 1.1em;
+        margin-bottom: 20px;
         width: 100%;
     }
 
     .projects-list li .desc {
-        font-size: 0.7em;
+        font-size: 0.8em;
         white-space: normal;
         opacity: 0.8;
         padding-left: 0;
-        line-height: 1.3;
+        line-height: 1.4;
     }
 
     .projects-list a {
-        font-size: 1em;
+        font-size: 1.1em;
     }
 
     .projects-list a em {
@@ -366,39 +364,39 @@ body {
 /* Small mobile screens */
 @media (max-width: 480px) {
     .about-me {
-        font-size: 1.4em;
+        font-size: 1.8em;
     }
 
     .regular-text {
-        font-size: 0.6em;
-        margin-top: 12px;
-    }
-
-    .about-me a, .regular-text a {
-        margin-left: 10px;
-    }
-
-    .first {
-        margin-left: -6px !important;
-    }
-
-    .extension-area {
+        font-size: 0.7em;
         margin-top: 15px;
     }
 
+    .about-me a, .regular-text a {
+        margin-left: 12px;
+    }
+
+    .first {
+        margin-left: -8px !important;
+    }
+
+    .extension-area {
+        margin-top: 18px;
+    }
+
     .divider {
-        height: 140px;
-        width: 20px;
-        margin-right: 10px;
+        height: 160px;
+        width: 25px;
+        margin-right: 12px;
     }
 
     .projects-list li {
-        font-size: 0.8em;
-        margin-bottom: 15px;
+        font-size: 1em;
+        margin-bottom: 18px;
     }
 
     .projects-list li .desc {
-        font-size: 0.65em;
+        font-size: 0.75em;
     }
 }
 

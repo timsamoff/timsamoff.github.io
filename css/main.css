@@ -314,7 +314,7 @@ body {
     }
 }
 
-/* Large screens - side by side */
+/* Large screens - side by side with larger fonts */
 @media (min-width: 1440px) {
     .main-wrapper {
         margin-left: 10%;
@@ -382,8 +382,8 @@ body {
     .projects-list li {
         flex-direction: row;
         align-items: center;
-        gap: 10px;
-        font-size: 0.8em;
+        gap: 20px;
+        font-size: 1em;
         margin-bottom: 20px;
     }
 
@@ -392,7 +392,7 @@ body {
     }
 
     .projects-list li .desc {
-        font-size: 1em;
+        font-size: 0.9em;
         white-space: nowrap;
         opacity: 0.7;
     }

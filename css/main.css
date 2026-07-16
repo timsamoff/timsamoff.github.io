@@ -166,6 +166,31 @@ body {
     margin-left: -12px !important; 
 }
 
+.tim a {
+    display: inline-block;
+    color: var(--color-text-primary);
+    text-decoration: none;
+    transition: color .5s ease;
+    animation: pulse-puff 3s infinite ease-in-out;
+}
+
+@keyframes pulse-puff {
+    0%, 100% {
+        text-shadow: 0 0 0px rgba(255, 255, 255, 0);
+    }
+    50% {
+        text-shadow: 0 0 15px rgba(255, 255, 255, 0.5),
+                     0 0 30px rgba(255, 255, 255, 0.25),
+                     0 0 45px rgba(255, 255, 255, 0.1);
+    }
+}
+
+.tim a:hover {
+    color: var(--color-link-hover);
+    animation: none;
+    text-shadow: none;
+}
+
 .tim a:hover, .links a:hover { 
     color: var(--color-link-hover); 
     transition: .5s ease; 

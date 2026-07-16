@@ -57,19 +57,18 @@ body {
 
 .extension-area {
     display: flex;
-    align-items: center;
+    align-items: stretch;
     margin-left: 60px;
     opacity: 0;
     animation: fadeIn 0.5s ease-out forwards;
     animation-delay: 1s; 
     flex-shrink: 0;
     max-width: 100%;
+    min-height: 180px;
 }
 
 .divider {
     width: 60px;
-    height: 180px;
-    position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -78,10 +77,11 @@ body {
 
 .chevron {
     width: 100%;
-    height: 100%;
+    height: 180px;
     display: block; 
     color: var(--color-text-secondary);
     stroke-width: 1px;
+    flex-shrink: 0;
 }
 
 @keyframes expandWidth {
@@ -255,22 +255,25 @@ body {
         margin-left: 0;
         margin-top: 18px;
         flex-direction: row;
-        align-items: center;
+        align-items: stretch;
         width: 100%;
         box-sizing: border-box;
+        min-height: 180px;
     }
 
     .divider {
-        height: 180px;
         width: 25px;
         margin-right: 10px;
         flex-shrink: 0;
-        align-self: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }
 
     .chevron {
-        transform: rotate(0deg);
-        height: 100%;
+        height: 180px;
+        width: 100%;
+        flex-shrink: 0;
     }
 
     .projects-list {
@@ -283,7 +286,8 @@ body {
         padding: 0;
         flex: 1;
         box-sizing: border-box;
-        align-self: center;
+        display: flex;
+        align-items: center;
     }
 
     .projects-list ul {
@@ -367,13 +371,21 @@ body {
         flex-shrink: 1;
         min-width: 0;
         max-width: 100%;
+        min-height: 180px;
     }
 
     .divider {
-        height: 180px;
         width: 60px;
         margin-right: 0;
         flex-shrink: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .chevron {
+        height: 180px;
+        width: 100%;
     }
 
     .projects-list {

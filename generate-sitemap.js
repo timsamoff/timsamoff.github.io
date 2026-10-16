@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Regenerates sitemap.xml for samoff.com from the sibling site repos.
 // Usage (from this repo): node generate-sitemap.js
+//   node generate-sitemap.js --check   exits 1 if sitemap.xml is stale (used by the pre-push gate)
 //
 // - Scans each site's git-tracked .html files.
 // - Skips any page with a robots meta tag containing "noindex", and files
@@ -63,5 +64,17 @@ const xml = [
   '',
 ].join('\n');
 
-fs.writeFileSync(path.join(__dirname, 'sitemap.xml'), xml);
+const outFile = path.join(__dirname, 'sitemap.xml');
+
+if (process.argv.includes('--check')) {
+  const current = fs.existsSync(outFile) ? fs.readFileSync(outFile, 'utf8').replace(/\r\n/g, '\n') : '';
+  if (current !== xml) {
+    console.error('sitemap.xml is out of date.');
+    process.exit(1);
+  }
+  console.log(`sitemap.xml is up to date (${entries.length} URLs)`);
+  process.exit(0);
+}
+
+fs.writeFileSync(outFile, xml);
 console.log(`sitemap.xml written: ${entries.length} URLs`);

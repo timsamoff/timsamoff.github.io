@@ -1,4 +1,3 @@
 User-agent: *
 Allow: /
-Crawl-delay:3
-Sitemap:https://samoff.com/sitemap.xml
+Sitemap: https://samoff.com/sitemap.xml

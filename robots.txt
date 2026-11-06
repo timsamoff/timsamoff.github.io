@@ -1,3 +1,4 @@
 User-agent: *
 Allow: /
+Disallow: /Sidequest/Sidequest-Artifact/
 Sitemap: https://samoff.com/sitemap.xml

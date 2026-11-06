@@ -18,7 +18,8 @@ const BASE = 'https://samoff.com';
 const PARENT = path.resolve(__dirname, '..');
 
 // folder: local repo folder next to this one. urlPath: where it is served.
-// Add Ryewired and Sidequest here once they are live.
+// exclude: optional repo-relative path prefixes to leave out (files that are served but are not pages).
+// Add Ryewired here once it is live.
 const SITES = [
   { folder: 'timsamoff.github.io', urlPath: '/' },
   { folder: 'written',             urlPath: '/written/' },
@@ -26,8 +27,8 @@ const SITES = [
   { folder: 'Circuit Scout',       urlPath: '/circuit-scout/' },
   { folder: 'enclosure-pro',       urlPath: '/enclosure-pro/' },
   { folder: 'Sentinel',            urlPath: '/Sentinel/' },
+  { folder: 'Sidequest',           urlPath: '/Sidequest/', exclude: ['Sidequest-Artifact/'] },
   // { folder: 'Ryewired',         urlPath: '/ryewired/' },
-  // { folder: 'Sidequest',        urlPath: '/sidequest/' },
 ];
 
 const git = (dir, args) => execFileSync('git', ['-C', dir, ...args], { encoding: 'utf8' }).trim();
@@ -37,7 +38,7 @@ const entries = [];
 for (const site of SITES) {
   const dir = path.join(PARENT, site.folder);
   if (!fs.existsSync(dir)) { console.warn(`skip: ${site.folder} not found`); continue; }
-  const files = git(dir, ['ls-files', '*.html']).split('\n').filter(f => f && !f.includes('node_modules'));
+  const files = git(dir, ['ls-files', '*.html']).split('\n').filter(f => f && !f.includes('node_modules') && !(site.exclude || []).some(x => f.startsWith(x)));
   for (const f of files) {
     const html = fs.readFileSync(path.join(dir, f), 'utf8');
     if (!/<head[\s>]/i.test(html)) continue; // snippet/fragment, not a page

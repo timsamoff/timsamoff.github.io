@@ -23,7 +23,7 @@ git config core.hooksPath .githooks
 Limit: the gate only runs when you push **this** repo. Pushing a site repo doesn't trigger it, so after pushing page changes elsewhere, run the steps above, or the next push here will remind you.
 
 ## Adding a new site
-Add `{ folder, urlPath }` to `SITES` in `generate-sitemap.js` (Ryewired and Sidequest are there, commented out), link it from `index.html` with a plain `<a href>`, then regenerate.
+Add `{ folder, urlPath }` to `SITES` in `generate-sitemap.js` (Ryewired is there, commented out), link it from `index.html` with a plain `<a href>`, then regenerate.
 
 ## Notes
 - Sibling repos must sit next to this one in the same parent folder, under the names in `SITES`.

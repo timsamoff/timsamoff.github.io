@@ -1,0 +1,8 @@
+# Local notes and session files. See CLAUDE.md.
+CLAUDE.md
+Sentinel-Notes/
+scratch/
+.claude/
+.playwright-mcp/
+Sentinel-Prompts/
+PROJECT_PROFILE.md

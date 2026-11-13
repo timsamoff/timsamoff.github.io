@@ -1,0 +1,57 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="200" height="200" fill="#e8dcc8" rx="40"/>
+  
+  <!-- Long shadow -->
+  <defs>
+    <linearGradient id="shadowGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#000000;stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#000000;stop-opacity:0" />
+    </linearGradient>
+  </defs>
+  <path d="M 145 35 L 200 90 L 200 200 L 110 200 L 55 165 L 145 165 Z" fill="url(#shadowGradient)"/>
+  
+  <!-- Pedal enclosure body (1590B proportions - taller/narrower) -->
+  <rect x="55" y="35" width="90" height="130" fill="#ff8c42" stroke="#cc5500" stroke-width="2" rx="4"/>
+  
+  <!-- Blueprint measurement lines (inside pedal) -->
+  <!-- Horizontal top line -->
+  <line x1="65" y1="50" x2="135" y2="50" stroke="#000000" stroke-width="1.5" stroke-dasharray="2,2"/>
+  <line x1="65" y1="47" x2="65" y2="53" stroke="#000000" stroke-width="1.5"/>
+  <line x1="135" y1="47" x2="135" y2="53" stroke="#000000" stroke-width="1.5"/>
+  
+  <!-- Vertical left line -->
+  <line x1="65" y1="50" x2="65" y2="150" stroke="#000000" stroke-width="1.5" stroke-dasharray="2,2"/>
+  <line x1="62" y1="50" x2="68" y2="50" stroke="#000000" stroke-width="1.5"/>
+  <line x1="62" y1="150" x2="68" y2="150" stroke="#000000" stroke-width="1.5"/>
+  
+  <!-- Center crosshair for main position -->
+  <circle cx="100" cy="70" r="8" fill="none" stroke="#000000" stroke-width="1.5"/>
+  <line x1="100" y1="58" x2="100" y2="65" stroke="#000000" stroke-width="1.5"/>
+  <line x1="100" y1="75" x2="100" y2="82" stroke="#000000" stroke-width="1.5"/>
+  <line x1="88" y1="70" x2="95" y2="70" stroke="#000000" stroke-width="1.5"/>
+  <line x1="105" y1="70" x2="112" y2="70" stroke="#000000" stroke-width="1.5"/>
+  
+  <!-- Drill holes (darker circles) -->
+  <circle cx="80" cy="105" r="5" fill="#cc5500"/>
+  <circle cx="100" cy="105" r="5" fill="#cc5500"/>
+  <circle cx="120" cy="105" r="5" fill="#cc5500"/>
+  <circle cx="100" cy="130" r="5" fill="#cc5500"/>
+  
+  <!-- Smaller drill holes at corners -->
+  <circle cx="65" cy="45" r="3" fill="#cc5500"/>
+  <circle cx="135" cy="45" r="3" fill="#cc5500"/>
+  <circle cx="65" cy="155" r="3" fill="#cc5500"/>
+  <circle cx="135" cy="155" r="3" fill="#cc5500"/>
+  
+  <!-- Dimension line between holes (inside pedal) -->
+  <line x1="80" y1="150" x2="120" y2="150" stroke="#000000" stroke-width="1.5"/>
+  <line x1="80" y1="147" x2="80" y2="153" stroke="#000000" stroke-width="1.5"/>
+  <line x1="120" y1="147" x2="120" y2="153" stroke="#000000" stroke-width="1.5"/>
+  
+  <!-- Grid dots for technical feel (inside pedal) -->
+  <circle cx="75" cy="80" r="1" fill="#000000" opacity="0.3"/>
+  <circle cx="90" cy="80" r="1" fill="#000000" opacity="0.3"/>
+  <circle cx="110" cy="80" r="1" fill="#000000" opacity="0.3"/>
+  <circle cx="125" cy="80" r="1" fill="#000000" opacity="0.3"/>
+</svg>

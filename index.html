@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en" class="no-js">
   <head>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-JM2CZ1DLQ4"></script>
@@ -11,13 +11,19 @@
       gtag('config', 'G-JM2CZ1DLQ4');
     </script>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tim Samoff | Games, Writing, and Web Apps</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tim Samoff | Games, Apps, and Writing</title>
     <meta name="description" content="A curated collection of work by educator, media producer, and game designer Tim Samoff.">
     <link rel="canonical" href="https://samoff.com/">
-    <link rel="stylesheet" href="css/reset.css">
-    <link rel="stylesheet" href="css/main.css">
+    <link rel="icon" href="favicon.ico" sizes="any">
+    <link rel="icon" href="favicon.png" type="image/png" sizes="32x32">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <script>document.documentElement.className = 'js';</script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Rock+Salt&display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="css/home.css">
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -46,43 +52,95 @@
     </script>
   </head>
 
-<body>
-    <div class="main-wrapper">
-        <div class="container">
-            <div class="about-me">
-                Hi, I&#8217;m <span class="tim"><a href='mailto:samoff@gmail.com'>Tim</a></span>.
-                <span class="regular-text links">
-                    <a href="https://github.com/timsamoff"><i class="first fa-brands fa-github-alt"></i></a>
-                    <a href="https://timsamoff.itch.io"><i class="fa-brands fa-itch-io"></i></a>
-                    <a href="https://instagram.com/timsamoff"><i class="fa-brands fa-instagram"></i></a>
-                    <a href="https://linkedin.com/in/timsamoff/"><i class="fa-brands fa-linkedin"></i></a>
-                </span>
-            </div>
+  <body>
+    <main class="stage">
+      <!-- Lines, circle, and arrow are drawn here by js/home.js. -->
+      <svg class="ink" aria-hidden="true" focusable="false"></svg>
+      <div class="zone" aria-hidden="true"></div>
+      <div class="orbit-probe" aria-hidden="true"></div>
+
+      <header class="hub">
+        <h1>Hi, I&#8217;m<br>Tim.</h1>
+
+        <!-- Shows the lines from js/lines.js on hover, click, or tap. -->
+        <p class="hub-say" aria-live="polite"></p>
+        <button class="hub-btn" type="button" aria-label="More about Tim"></button>
+
+        <!-- Small screens: shows the tapped project. -->
+        <div class="hub-detail" aria-live="polite">
+          <p class="d-name"></p>
+          <p class="d-desc"></p>
+          <a class="d-open" href="#">Open</a>
         </div>
-        
-        <div class="extension-area">
-            <div class="divider">
-                <svg class="chevron" viewBox="0 0 24 24" preserveAspectRatio="none" fill="none" stroke="currentColor">
-                    <path d="M9 18l6-6-6-6" vector-effect="non-scaling-stroke"/>
-                </svg>
-            </div>
-            <div class="projects-list">
-                <ul>
-                    <li><a href="/portfolio">Portfolio</a>
-                    <span class="desc">All the stuff</span></li>
-                    <li><a href="/enclosure-pro">Enclosure Pro</a>
-                    <span class="desc">Electron app for generating drill hole layouts for effects pedal enclosures</span></li>
-                    <li><a href="/circuit-scout">Circuit Scout</a>
-                    <span class="desc">Web app for exploring effects pedal circuit designs</span></li>
-                    <li><a href="/sidequest/">Sidequest</a>
-                    <span class="desc">Lightweight project planner for juggling several projects</span></li>
-                    <li><a href="/written/app/">Written <em>&</em> Formatted</a>
-                    <span class="desc">Web app that formats plain text and markdown into semantic, accessible HTML</span></li>
-                    <li><a href="/written/">Written</a>
-                    <span class="desc">Collection of articles, essays, fiction, and more</span></li>
-                </ul>
-            </div>
-        </div>
-    </div>
-</body>
+      </header>
+
+      <nav class="social" aria-label="Elsewhere">
+        <ul>
+          <li><a href="https://github.com/timsamoff" aria-label="GitHub"><i class="fa-brands fa-github-alt" aria-hidden="true"></i></a></li>
+          <li><a href="https://timsamoff.itch.io" aria-label="itch.io"><i class="fa-brands fa-itch-io" aria-hidden="true"></i></a></li>
+          <li><a href="https://instagram.com/timsamoff" aria-label="Instagram"><i class="fa-brands fa-instagram" aria-hidden="true"></i></a></li>
+          <li><a href="https://linkedin.com/in/timsamoff/" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in" aria-hidden="true"></i></a></li>
+        </ul>
+      </nav>
+
+      <section class="work" aria-labelledby="work-title">
+        <h2 class="tape" id="work-title">Latest work</h2>
+        <ul class="pills">
+          <li>
+            <a class="pill" href="/sidequest/">
+              <span class="glyph"><img src="img/sidequest.svg" alt="" width="40" height="40" draggable="false"></span>
+              <span class="pill-text">
+                <span class="name">Sidequest</span>
+                <span class="desc">Lightweight project planner for juggling several projects</span>
+              </span>
+            </a>
+          </li>
+          <li>
+            <a class="pill" href="/sentinel/">
+              <span class="glyph"><img src="img/sentinel.png" alt="" width="40" height="40" draggable="false"></span>
+              <span class="pill-text">
+                <span class="name">Sentinel</span>
+                <span class="desc">Open-source quality gates for AI coding agents</span>
+              </span>
+            </a>
+          </li>
+          <li>
+            <a class="pill" href="/enclosure-pro">
+              <span class="glyph"><img src="img/enclosure-pro.svg" alt="" width="40" height="40" draggable="false"></span>
+              <span class="pill-text">
+                <span class="name">Enclosure Pro</span>
+                <span class="desc">Electron app for generating drill hole layouts for effects pedal enclosures</span>
+              </span>
+            </a>
+          </li>
+          <li>
+            <a class="pill" href="/circuit-scout">
+              <span class="glyph"><img src="img/circuit-scout.svg" alt="" width="40" height="40" draggable="false"></span>
+              <span class="pill-text">
+                <span class="name">Circuit Scout</span>
+                <span class="desc">Web app for exploring effects pedal circuit designs</span>
+              </span>
+            </a>
+          </li>
+          <li>
+            <a class="pill" href="/written/">
+              <span class="glyph"><img src="img/written.png" alt="" width="40" height="40" draggable="false"></span>
+              <span class="pill-text">
+                <span class="name">Written</span>
+                <span class="desc">Collection of articles, essays, fiction, and more</span>
+              </span>
+            </a>
+          </li>
+        </ul>
+      </section>
+
+      <nav class="actions" aria-label="Portfolio and contact">
+        <a class="btn" href="/portfolio">Portfolio</a>
+        <a class="btn" href="mailto:samoff@gmail.com">Contact</a>
+      </nav>
+    </main>
+
+    <script src="js/lines.js"></script>
+    <script src="js/home.js"></script>
+  </body>
 </html>

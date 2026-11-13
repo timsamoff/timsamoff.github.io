@@ -1,0 +1,536 @@
+/* Home page. The wide and compact layouts share one set of markup; see CLAUDE.md.
+   The compact breakpoint must match the media query string in js/home.js. */
+
+:root {
+    --bg-start: #4158D0;
+    --bg-middle: #C850C0;
+    --bg-end: #FFCC70;
+    --ink: #1c1446;
+    --pen: #000;    /* Every drawn line: circle, ring, pill and icon outlines, connectors. */
+    --note: #fff;   /* Handwritten social names. */
+    --label: #000;  /* The "Latest work" note and its arrow. */
+    --paper: #fff;
+    /* Wash behind white text. Lighter fails contrast at the yellow end. */
+    --tint: rgba(28, 20, 70, 0.5);
+    --line: 2.5px;
+    --edge: 34px;   /* How far outside the ring still counts as the ring. js/home.js measures it. */
+    --font: 'Atkinson Hyperlegible', sans-serif;
+    --display: 'Rock Salt', cursive;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { height: 100%; }
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
+    font-family: var(--font);
+    color: var(--paper);
+    background: linear-gradient(43deg, var(--bg-start) 0%, var(--bg-middle) 46%, var(--bg-end) 100%) fixed;
+}
+
+/* The same colors as OKLCH, so JS can sway --hue while lightness, and contrast, hold.
+   These override the hex values above in any browser that supports OKLCH. */
+@supports (color: oklch(0.5 0.1 0)) {
+    :root {
+        --bg-start: oklch(0.514 0.186 calc(270.3 + var(--hue, 0)));
+        --bg-middle: oklch(0.628 0.2 calc(330.3 + var(--hue, 0)));
+        --bg-end: oklch(0.872 0.124 calc(80.7 + var(--hue, 0)));
+    }
+}
+
+ul { list-style: none; margin: 0; padding: 0; }
+h1, h2, p { margin: 0; }
+
+.stage {
+    position: relative;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 320px;
+    overflow-x: clip;
+}
+
+/* ---------- Drawn lines ---------- */
+
+.ink {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.ink path, .ink circle {
+    fill: none;
+    stroke: var(--pen);
+    stroke-width: var(--line);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.ink .ink-node { fill: var(--pen); stroke: none; }
+.ink .ink-arrow { stroke: var(--label); }
+
+/* Each outlined shape is a wash (sk-fill) under two pen passes (sk-stroke). */
+.ink .sk-fill { fill: var(--tint); stroke: none; }
+.ink .sk-fill.sk-btn { fill: var(--paper); fill-opacity: 0.75; }
+.ink .sk-fill.sk-btn.is-hot { fill: var(--tint); fill-opacity: 1; }
+.ink .sk-fill.sk-badge.is-hot,
+.ink .sk-fill.is-on { fill: var(--paper); }
+.ink .sk-stroke.sk-pill.is-hot { stroke-width: 4px; }
+
+/* ---------- Circle ---------- */
+
+.zone, .hub {
+    position: absolute;
+    left: var(--cx);
+    top: var(--cy);
+    translate: -50% -50%;
+    border-radius: 50%;
+    touch-action: none;
+}
+
+.zone {
+    width: calc(2 * (var(--orbit-r) + var(--edge)));
+    height: calc(2 * (var(--orbit-r) + var(--edge)));
+}
+
+.orbit-probe {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: var(--orbit-r);
+    height: 0;
+    visibility: hidden;
+}
+
+.hub {
+    width: calc(2 * var(--hub-r));
+    height: calc(2 * var(--hub-r));
+    display: grid;
+    place-items: center;
+    text-align: center;
+}
+
+.hub h1 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: calc(var(--hub-r) * 0.3);
+    line-height: 1.5;
+    user-select: none;
+}
+
+.hub-detail { display: none; }
+
+/* The greeting and the line that replaces it share the same spot. */
+.hub h1, .hub-say { grid-area: 1 / 1; }
+
+.hub-say {
+    max-width: calc(var(--hub-r) * 1.6);
+    font-family: var(--display);
+    font-size: calc(var(--hub-r) * 0.24);
+    line-height: 1.5;
+    text-wrap: balance;
+    white-space: pre-line;   /* A newline in js/lines.js forces a break. */
+    opacity: 0;
+    pointer-events: none;
+    user-select: none;
+}
+
+.is-saying h1 { opacity: 0; }
+
+.is-saying .hub-say {
+    opacity: 1;
+    animation: write-on 0.4s steps(7) both;
+}
+
+/* The greeting wipes back in the same way. JS removes the class when it finishes. */
+.wipe-in h1 { animation: write-on 0.4s steps(7) both; }
+
+.has-detail .hub-say,
+.has-detail .hub-btn { display: none; }
+
+/* Wipes text in from the left in a few steps, like handwriting. */
+@keyframes write-on {
+    from { clip-path: inset(-20% 100% -20% -10%); }
+    to { clip-path: inset(-20% -10% -20% -10%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .is-saying .hub-say,
+    .wipe-in h1,
+    .social-note.is-on { animation: none; }
+}
+
+/* Invisible button covering the circle. */
+.hub-btn {
+    position: absolute;
+    inset: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+    cursor: pointer;
+    touch-action: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.hub-btn:focus-visible {
+    outline: 3px solid var(--paper);
+    outline-offset: -6px;
+}
+
+/* Without JavaScript nothing draws the circle, so CSS does. */
+.no-js .hub,
+.no-js .pill,
+.no-js .social a {
+    border: var(--line) solid var(--pen);
+    background: var(--tint);
+}
+.no-js .btn { background: rgba(255, 255, 255, 0.75); }
+
+/* ---------- Shared pieces ---------- */
+
+/* The "Latest work" note. */
+.tape {
+    display: inline-block;
+    color: var(--label);
+    font-family: var(--display);
+    font-size: 0.95rem;
+    font-weight: 400;
+    line-height: 1.4;
+    white-space: nowrap;
+    rotate: -4deg;
+}
+
+.pill {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    color: var(--paper);
+    text-decoration: none;
+    border-radius: 999px;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.glyph {
+    position: relative;
+    flex: none;
+    display: block;
+    width: 40px;
+    height: 40px;
+}
+
+.glyph img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 22%;
+}
+
+/* Two-tone ring: white between two ink lines, so it shows at both ends of the gradient. */
+.pill:focus-visible,
+.social a:focus-visible {
+    outline: 3px solid var(--paper);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 7px var(--ink);
+}
+
+.social a {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    color: var(--paper);
+    font-size: 1.15rem;
+    text-decoration: none;
+    touch-action: none;
+}
+
+.social a:hover,
+.social a:focus-visible { color: var(--ink); }
+
+/* Handwritten name that appears beside a hovered or focused social icon.
+   JS creates it and sets left and top. */
+.social-note {
+    position: absolute;
+    translate: -50% -50%;
+    rotate: -4deg;
+    font-family: var(--display);
+    font-size: 0.8rem;
+    line-height: 1.4;
+    color: var(--note);
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+}
+
+.social-note.is-on {
+    opacity: 1;
+    animation: write-on 0.3s steps(5) both;
+}
+
+.actions {
+    position: absolute;
+    display: flex;
+    gap: 12px;
+}
+
+.btn, .d-open {
+    display: inline-block;
+    color: var(--ink);
+    font-family: var(--display);
+    font-weight: 400;
+    line-height: 1.2;
+    text-decoration: none;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+.btn {
+    padding: 14px 24px 12px;
+    font-size: 0.82rem;
+}
+
+/* Hover and focus turn the text white on the dark wash. Hover is limited to devices that
+   hover, since touch leaves :hover stuck. */
+.btn:focus-visible,
+.d-open:focus-visible { color: var(--paper); }
+
+@media (hover: hover) {
+    .btn:hover,
+    .d-open:hover { color: var(--paper); }
+}
+
+.btn:focus-visible,
+.d-open:focus-visible {
+    outline: 3px solid var(--paper);
+    outline-offset: 5px;
+}
+
+/* Without JavaScript the angles are not set, so five entries get fixed ones. */
+.no-js .pills li:nth-child(1) { --a: -90deg; }
+.no-js .pills li:nth-child(2) { --a: -18deg; }
+.no-js .pills li:nth-child(3) { --a: 54deg; }
+.no-js .pills li:nth-child(4) { --a: 126deg; }
+.no-js .pills li:nth-child(5) { --a: 198deg; }
+
+/* ---------- Wide layout ---------- */
+
+@media (min-width: 821px) and (min-height: 601px) {
+    .stage {
+        --hub-r: clamp(110px, min(13vw, 22vh), 200px);
+        --orbit-r: calc(var(--hub-r) + 36px);
+        /* The ring (plus the icons riding it), the gap, and the pill column are
+           centered as one block. 22px is half a social icon. */
+        --ring-w: calc(2 * var(--orbit-r) + 44px);
+        --gap: clamp(56px, 8vw, 150px);
+        --col: min(492px, 100vw - var(--ring-w) - var(--gap) - 48px);
+        --cx: calc(50% - (var(--ring-w) + var(--gap) + var(--col)) / 2 + var(--ring-w) / 2);
+        --cy: 45%;
+    }
+
+    /* Social icons ride the ring. JS turns it by setting --theta on the stage. */
+    .social li {
+        position: absolute;
+        left: var(--cx);
+        top: var(--cy);
+        width: 0;
+        height: 0;
+        --turn: calc(var(--theta, 0deg) + var(--a));
+        transform: rotate(var(--turn)) translateX(var(--orbit-r)) rotate(calc(-1 * var(--turn)));
+    }
+    .social li:nth-child(1) { --a: 100deg; }
+    .social li:nth-child(2) { --a: 150deg; }
+    .social li:nth-child(3) { --a: 210deg; }
+    .social li:nth-child(4) { --a: 260deg; }
+
+    .social a {
+        position: absolute;
+        left: -22px;
+        top: -22px;
+    }
+
+    .work {
+        position: absolute;
+        left: calc(var(--cx) + var(--ring-w) / 2 + var(--gap));
+        width: var(--col);
+        top: var(--cy);
+        translate: 0 -50%;
+    }
+
+    .tape { margin: 0 0 26px 30px; }
+
+    .pills {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 14px;
+    }
+
+    .pills li:nth-child(2), .pills li:nth-child(4) { margin-left: 34px; }
+    .pills li:nth-child(3) { margin-left: 52px; }
+
+    .pill {
+        max-width: 440px;
+        padding: 10px 30px 10px 12px;
+    }
+
+    .pill-text { display: block; }
+
+    .name {
+        display: block;
+        font-family: var(--display);
+        font-weight: 400;
+        font-size: 0.8rem;
+        line-height: 1.5;
+    }
+
+    .desc {
+        display: block;
+        margin-top: 2px;
+        font-size: 0.88rem;
+        line-height: 1.3;
+    }
+
+    .pill:hover .name {
+        text-decoration: underline;
+        text-decoration-thickness: 2px;
+        text-underline-offset: 3px;
+    }
+
+    .actions {
+        left: var(--cx);
+        top: calc(var(--cy) + var(--orbit-r) + 48px);
+        translate: -50% 0;
+    }
+}
+
+/* ---------- Compact layout ---------- */
+
+@media (max-width: 820px), (max-height: 600px) {
+    .stage {
+        --size: min(100vw - 24px, 100dvh - 200px, 420px);
+        --orbit-r: calc(var(--size) / 2 - 26px);
+        --hub-r: calc(var(--orbit-r) - 38px);
+        --cx: 50%;
+        /* Centered between the label at the top and the buttons at the bottom. */
+        --cy: calc(50dvh - 42px);
+    }
+
+    .tape {
+        position: absolute;
+        left: 16px;
+        top: 18px;
+    }
+
+    /* Project circles ride the ring. */
+    .pills li {
+        position: absolute;
+        left: var(--cx);
+        top: var(--cy);
+        width: 0;
+        height: 0;
+        --turn: calc(var(--theta, 0deg) + var(--a));
+        transform: rotate(var(--turn)) translateX(var(--orbit-r)) rotate(calc(-1 * var(--turn)));
+    }
+    /* js/home.js sets --a on each item, spacing them evenly for any count. */
+
+    .pill {
+        position: absolute;
+        left: -26px;
+        top: -26px;
+        width: 52px;
+        height: 52px;
+        justify-content: center;
+        touch-action: none;
+    }
+
+    .glyph { width: 30px; height: 30px; }
+
+    /* Name and description stay available to screen readers. */
+    .pill-text,
+    .has-detail .hub h1 {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+    }
+
+    .has-detail .hub-detail {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        padding: 0 calc(var(--hub-r) * 0.24);
+    }
+
+    .d-name {
+        font-family: var(--display);
+        font-weight: 400;
+        font-size: 0.78rem;
+        line-height: 1.4;
+    }
+
+    .d-desc {
+        font-size: 0.78rem;
+        line-height: 1.3;
+    }
+
+    .d-open {
+        margin-top: 8px;
+        padding: 11px 20px 9px;
+        font-size: 0.72rem;
+    }
+
+    .social {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 78px;
+    }
+
+    .social ul {
+        display: flex;
+        justify-content: center;
+        gap: 14px;
+    }
+
+    .actions {
+        left: 0;
+        right: 0;
+        bottom: 16px;
+        justify-content: center;
+    }
+}
+
+/* Short and wide (a phone on its side): circle left, everything else right. */
+@media (max-height: 600px) and (min-aspect-ratio: 5/4) {
+    .stage {
+        --size: min(100dvh - 40px, 46vw, 420px);
+        --cx: 27%;
+        --cy: 50%;
+    }
+
+    .tape {
+        left: 56%;
+        top: 16%;
+    }
+
+    .social {
+        left: 50%;
+        bottom: auto;
+        top: calc(50% - 34px);
+    }
+
+    .actions {
+        left: 50%;
+        bottom: auto;
+        top: calc(50% + 30px);
+    }
+}

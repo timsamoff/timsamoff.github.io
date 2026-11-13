@@ -531,6 +531,42 @@ function listCount(src) {
   return out;
 }
 
+// ---------- C2. title and description match in the share tags ----------
+
+function headSync(src) {
+  const out = [];
+  const html = src.read('index.html');
+  const lineOf = (needle) => {
+    const i = html.indexOf(needle);
+    return i < 0 ? 0 : html.slice(0, i).split('\n').length;
+  };
+  const meta = (attr, key) => {
+    const m = html.match(new RegExp(`<meta\\s+${attr}="${key}"\\s+content="([^"]*)"`, 'i'));
+    return m ? m[1] : null;
+  };
+  const t = html.match(/<title>([^<]*)<\/title>/i);
+  const title = t ? t[1] : null;
+  const desc = meta('name', 'description');
+  const want = [
+    ['og:title', meta('property', 'og:title'), title, '<title>'],
+    ['twitter:title', meta('name', 'twitter:title'), title, '<title>'],
+    ['og:description', meta('property', 'og:description'), desc, 'the meta description'],
+    ['twitter:description', meta('name', 'twitter:description'), desc, 'the meta description'],
+  ];
+  for (const [name, got, expect, label] of want) {
+    if (expect === null) continue;
+    if (got === null) {
+      out.push(V('head-sync', 'index.html', 0, name, `index.html has no ${name} tag.`, `Add it, with the same text as ${label}.`));
+    } else if (got !== expect) {
+      out.push(V('head-sync', 'index.html', lineOf(`"${name}"`), name,
+        `${name} says "${got}" but ${label} says "${expect}".`, `Make ${name} match ${label}.`));
+    }
+  }
+  if (title === null) out.push(V('head-sync', 'index.html', 0, '<title>', 'index.html has no <title>.', 'Add one.'));
+  if (desc === null) out.push(V('head-sync', 'index.html', 0, 'description', 'index.html has no meta description.', 'Add one.'));
+  return out;
+}
+
 // ---------- D. contrast on the wash ----------
 
 // Not 4.5: the far yellow corner measures 4.49 and holds no text. The probe clips colors outside sRGB.
@@ -868,6 +904,7 @@ function stagedChecks() {
     [straightQuotes, ['index.html', 'js/home.js', 'archive/', 'Sentinel/']],
     [tokenFallback, ['css/home.css']],
     [listCount, ['index.html', 'css/home.css']],
+    [headSync, ['index.html']],
     [contrast, ['css/home.css', 'js/home.js']],
     [images, ['index.html', 'img/']],
     [hooks, ['.githooks/']],
@@ -974,4 +1011,4 @@ function hooksPathCheck() {
 }
 
 if (require.main === module) main();
-module.exports = { checkMessage, parseCss, checks: { linesFile, straightQuotes, tokenFallback, listCount, contrast } };
+module.exports = { checkMessage, parseCss, checks: { linesFile, straightQuotes, tokenFallback, listCount, headSync, contrast } };

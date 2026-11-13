@@ -1,5 +1,5 @@
 #!/bin/sh
-# Sentinel: checks the staged content. The logic lives in sentinel-check.js.
+# Sentinel: checks the staged content. The logic lives in .sentinel/sentinel-check.js.
 cd "$(git rev-parse --show-toplevel)" || exit 1
 command -v node >/dev/null 2>&1 || { echo "Sentinel: node was not found, so the commit checks can't run." >&2; exit 1; }
-exec node sentinel-check.js --staged
+exec node .sentinel/sentinel-check.js --staged

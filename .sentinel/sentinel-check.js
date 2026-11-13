@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Sentinel quality gate for samoff.com. Rules and reasons are in CLAUDE.md and Sentinel-Notes/.
-// Modes: --staged, --commit-msg <file>, --push, --full, --notes, --history <n>, --write-baseline.
+// Modes: --staged, --commit-msg <file>, --push, --full, --notes, --probe [file], --history <n>, --write-baseline.
 
 'use strict';
 
@@ -9,10 +9,10 @@ const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 
-const ROOT = __dirname;
-const BASELINE_FILE = 'sentinel-baseline.json';
-const EXCEPTIONS_FILE = 'sentinel-exceptions.json';
-const MANIFEST_FILE = 'sentinel-known-extensions.txt';
+const ROOT = path.resolve(__dirname, '..');
+const BASELINE_FILE = '.sentinel/sentinel-baseline.json';
+const EXCEPTIONS_FILE = '.sentinel/sentinel-exceptions.json';
+const MANIFEST_FILE = '.sentinel/sentinel-known-extensions.txt';
 const HOME_URL = 'https://samoff.com';
 
 // Commit message limits, confirmed with the project owner on 2026-11-13.
@@ -148,7 +148,8 @@ function parseCss(src) {
   for (let i = 0; i < css.length; i++) {
     const c = css[i];
     if (c === '{') {
-      const rule = { selector: buf.trim().replace(/\s+/g, ' '), decls: [] };
+      const parent = stack[stack.length - 1];
+      const rule = { selector: buf.trim().replace(/\s+/g, ' '), decls: [], line: lineOf(i), parentSel: parent ? parent.selector : '' };
       stack.push(rule);
       rules.push(rule);
       buf = '';
@@ -247,12 +248,17 @@ function archiveNoindex(src) {
   return out;
 }
 
+const CURLY = '‘ ’ “ ”';
+const straightMsg = (what) => `${what} has a straight quote or apostrophe. Visible text uses curly ones.`;
+const straightFix = `Replace it with a curly one. Copy from here: ${CURLY}`;
+
 function linesFile(src) {
   const file = 'js/lines.js';
   try {
+    const text = src.read(file);
     const ctx = { window: {} };
     vm.createContext(ctx);
-    vm.runInContext(src.read(file), ctx, { timeout: 1000 });
+    vm.runInContext(text, ctx, { timeout: 1000 });
     const lines = ctx.window.HOME_LINES;
     if (!Array.isArray(lines) || !lines.length) {
       return [V('lines-file', file, 0, 'HOME_LINES', 'window.HOME_LINES is missing or empty.', 'Define window.HOME_LINES as a list of strings.')];
@@ -261,10 +267,94 @@ function linesFile(src) {
     if (bad > -1) {
       return [V('lines-file', file, 0, `item ${bad + 1}`, `Item ${bad + 1} of HOME_LINES is not a non-empty string.`, 'Make every item a quoted string.')];
     }
-    return [];
+    const out = [];
+    const src0 = text.split('\n');
+    // The nth source line holding this exact string in quotes, or 0 if it can't be found (escapes, concatenation).
+    const seenExact = new Map();
+    const lineOf = (s) => {
+      const nth = seenExact.get(s) || 0;
+      seenExact.set(s, nth + 1);
+      const esc = s.replace(/\n/g, '\\n');
+      const quoted = [`"${esc.replace(/"/g, '\\"')}"`, `'${esc.replace(/'/g, "\\'")}'`];
+      let seen = 0;
+      for (let i = 0; i < src0.length; i++) {
+        if (quoted.some((q) => src0[i].includes(q))) { if (seen === nth) return i + 1; seen += 1; }
+      }
+      return 0;
+    };
+    const firstSeen = new Map();
+    lines.forEach((l) => {
+      const key = l.trim().toLowerCase();
+      const at = lineOf(l);
+      if (/['"]/.test(l)) out.push(V('straight-quote', file, at, l, straightMsg(`"${l}"`), straightFix));
+      if (!firstSeen.has(key)) { firstSeen.set(key, at); return; }
+      out.push(V('lines-file', file, at, l, `"${l}" is in HOME_LINES more than once (first at line ${firstSeen.get(key)}), so the shuffle can show it twice in a row.`,
+        'Delete one of them.'));
+    });
+    return out;
   } catch (e) {
     return [V('lines-file', file, 0, 'syntax', `The file doesn't run: ${e.message}`, 'Fix the quote, comma, or bracket it names.')];
   }
+}
+
+// ---------- straight quotes in visible text ----------
+
+// Blank a span but keep its newlines, so line numbers stay right.
+const hole = (s) => s.replace(/[^\n]/g, ' ');
+
+function htmlVisible(html, wantTitle) {
+  const out = [];
+  const flag = (idx, text, where) => out.push({ line: html.slice(0, idx).split('\n').length, text, where });
+  const hit = (t) => /['"]|&#39;|&apos;|&quot;|&#x27;|&#x22;|&#34;/i.test(t);
+  if (wantTitle) {
+    const t = html.match(/<title>([\s\S]*?)<\/title>/i);
+    if (t && hit(t[1])) flag(t.index, t[1].trim(), '<title>');
+  }
+  let body = html;
+  const bm = html.match(/<body[\s>]/i);
+  body = bm ? hole(html.slice(0, bm.index)) + html.slice(bm.index) : hole(html);
+  body = body.replace(/<!--[\s\S]*?-->/g, hole).replace(/<(script|style)\b[\s\S]*?<\/\1>/gi, hole);
+  for (const m of body.matchAll(/<[^>]*>|[^<]+/g)) {
+    const tok = m[0];
+    if (tok[0] === '<') {
+      for (const a of tok.matchAll(/\b(aria-label|alt|title)\s*=\s*(?:"([^"]*)"|'([^']*)')/gi)) {
+        const val = a[2] !== undefined ? a[2] : a[3];
+        if (hit(val)) flag(m.index + a.index, val, a[1]);
+      }
+    } else if (hit(tok)) {
+      const lead = tok.length - tok.trimStart().length;
+      flag(m.index + lead, tok.trim().replace(/\s+/g, ' '), 'text');
+    }
+  }
+  return out;
+}
+
+// String literals that home.js writes to the page: textContent = ... and setAttribute('aria-label', ...).
+function scriptStrings(js) {
+  const out = [];
+  const code = js.replace(/\/\*[\s\S]*?\*\//g, hole);
+  const stmt = /(\.textContent\s*=|setAttribute\(\s*['"]aria-label['"]\s*,)([^;]*);/g;
+  for (const m of code.matchAll(stmt)) {
+    const base = m.index + m[1].length;
+    for (const s of m[2].matchAll(/'((?:\\.|[^'\\\n])*)'|"((?:\\.|[^"\\\n])*)"/g)) {
+      const body = s[1] !== undefined ? s[1] : s[2];
+      if (/['"]/.test(body)) out.push({ line: code.slice(0, base + s.index).split('\n').length, text: body });
+    }
+  }
+  return out;
+}
+
+function straightQuotes(src) {
+  const out = [];
+  for (const p of src.list().filter((f) => f.endsWith('.html'))) {
+    for (const f of htmlVisible(src.read(p), p === 'index.html')) {
+      out.push(V('straight-quote', p, f.line, f.text, `${straightMsg(`The ${f.where} "${f.text}"`)}`, straightFix));
+    }
+  }
+  for (const f of scriptStrings(src.read('js/home.js'))) {
+    out.push(V('straight-quote', 'js/home.js', f.line, f.text, `${straightMsg(`The string "${f.text}"`)}`, straightFix));
+  }
+  return out;
 }
 
 function images(src) {
@@ -308,6 +398,212 @@ function hooks(src) {
   for (const f of files) {
     if (src.mode(f) !== '100755') {
       out.push(V('hook-not-executable', f, 0, f, 'Stored without the executable bit, so macOS and Linux skip it.', `Run: git update-index --chmod=+x ${f}`));
+    }
+  }
+  return out;
+}
+
+// ---------- color math and tokens (checks B and D) ----------
+
+const toLinear = (c) => (c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+const toGamma = (c) => (c <= 0.0031308 ? 12.92 * c : 1.055 * Math.pow(c, 1 / 2.4) - 0.055);
+const clamp01 = (v) => Math.max(0, Math.min(1, v));
+
+// OKLCH to gamma sRGB (0-1 per channel), clipped to the sRGB gamut.
+function oklchToRgb(L, C, H) {
+  const h = (H * Math.PI) / 180;
+  const a = C * Math.cos(h);
+  const b = C * Math.sin(h);
+  const l = Math.pow(L + 0.3963377774 * a + 0.2158037573 * b, 3);
+  const m = Math.pow(L - 0.1055613458 * a - 0.0638541728 * b, 3);
+  const s = Math.pow(L - 0.0894841775 * a - 1.291485548 * b, 3);
+  return [
+    4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+    -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+    -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s,
+  ].map((v) => toGamma(clamp01(v)));
+}
+
+const to255 = (rgb) => rgb.map((v) => Math.round(v * 255));
+const toHex = (rgb) => '#' + to255(rgb).map((v) => v.toString(16).padStart(2, '0')).join('');
+const luminance = (rgb) => { const [r, g, b] = rgb.map(toLinear); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+const ratio = (x, y) => { const a = luminance(x); const b = luminance(y); return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05); };
+const mixRgb = (x, y, t) => x.map((v, i) => v + (y[i] - v) * t);
+
+// A hex, rgb(), or rgba() literal as { rgb: [0-1 x3], a }, or null.
+function parseColor(v) {
+  v = (v || '').trim();
+  let m = v.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
+  if (m) {
+    const h = m[1].length === 3 ? m[1].replace(/./g, '$&$&') : m[1];
+    return { rgb: [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16) / 255), a: 1 };
+  }
+  m = v.match(/^rgba?\(\s*(\d+)\s*[, ]\s*(\d+)\s*[, ]\s*(\d+)\s*(?:[,/]\s*([\d.]+)\s*)?\)$/i);
+  if (m) return { rgb: [m[1], m[2], m[3]].map((n) => Number(n) / 255), a: m[4] === undefined ? 1 : Number(m[4]) };
+  return null;
+}
+
+const OKLCH_RE = /^oklch\(\s*([\d.]+)\s+([\d.]+)\s+(?:calc\(\s*([\d.]+)\s*\+\s*var\(--hue,\s*0\)\s*\)|([\d.]+))\s*\)$/;
+const MIX_RE = /^color-mix\(\s*in srgb\s*,\s*var\((--[\w-]+)\)\s+([\d.]+)%\s*,\s*transparent\s*\)$/;
+
+// The :root tokens: base holds the plain values, over holds the ones an @supports block replaces.
+function rootTokens(cssText) {
+  const base = new Map();
+  const over = new Map();
+  for (const rule of parseCss(cssText)) {
+    if (rule.selector !== ':root') continue;
+    const target = rule.parentSel.startsWith('@supports') ? over : base;
+    for (const d of rule.decls) if (d.prop.startsWith('--')) target.set(d.prop, d);
+  }
+  return { base, over };
+}
+
+const fmtAlpha = (a) => String(Number(a.toFixed(3)));
+const fmtRgba = (rgb, a) => `rgba(${to255(rgb).join(', ')}, ${fmtAlpha(a)})`;
+
+// ---------- B. fallbacks match their tokens ----------
+
+function tokenFallback(src) {
+  const file = 'css/home.css';
+  const { base, over } = rootTokens(src.read(file));
+  const out = [];
+  const bad = (d, detail, fix) => out.push(V('token-fallback', file, d.line, `${d.prop}: ${d.value}`, detail, fix));
+  for (const [name, d] of over) {
+    const fb = base.get(name);
+    const fbColor = fb && parseColor(fb.value);
+    if (OKLCH_RE.test(d.value)) {
+      const m = d.value.match(OKLCH_RE);
+      const want = toHex(oklchToRgb(Number(m[1]), Number(m[2]), Number(m[3] !== undefined ? m[3] : m[4])));
+      if (!fbColor) { bad(d, `${name} has no plain fallback in :root.`, `Add ${name}: ${want}; to :root.`); continue; }
+      const diff = Math.max(...to255(fbColor.rgb).map((v, i) => Math.abs(v - to255(parseColor(want).rgb)[i])));
+      if (diff > 1) bad(fb, `The fallback ${name}: ${fb.value} doesn't match its OKLCH value at hue 0 (off by ${diff} on a channel).`, `Change the fallback to ${want}.`);
+    } else if (MIX_RE.test(d.value)) {
+      const m = d.value.match(MIX_RE);
+      const srcTok = base.get(m[1]);
+      const srcColor = srcTok && parseColor(srcTok.value);
+      if (!srcColor) { bad(d, `This check can't resolve ${m[1]} in :root to a color, so it can't compare ${name}.`, `Give ${m[1]} a plain hex value in :root.`); continue; }
+      const alpha = Number(m[2]) / 100;
+      const want = fmtRgba(srcColor.rgb, alpha);
+      if (!fbColor) { bad(d, `${name} has no plain fallback in :root.`, `Add ${name}: ${want}; to :root.`); continue; }
+      const same = to255(fbColor.rgb).every((v, i) => Math.abs(v - to255(srcColor.rgb)[i]) <= 1) && Math.abs(fbColor.a - alpha) < 0.005;
+      if (!same) bad(fb, `The fallback ${name}: ${fb.value} isn't ${m[1]} at ${m[2]}% alpha.`, `Change the fallback to ${want}.`);
+    } else {
+      bad(d, `This check doesn't know how to compare this value: ${name}: ${d.value}`, 'Use oklch(L C H) or color-mix(in srgb, var(--x) N%, transparent), or teach the check the new form.');
+    }
+  }
+  return out;
+}
+
+// ---------- C. list counts match the CSS ----------
+
+function listCount(src) {
+  const out = [];
+  const html = src.read('index.html');
+  const css = parseCss(src.read('css/home.css'));
+  const liCount = (block) => (block ? (block[0].match(/<li[\s>]/gi) || []).length : 0);
+  const projects = liCount(html.match(/<ul[^>]*class="pills"[^>]*>[\s\S]*?<\/ul>/i));
+  const socials = liCount(html.match(/<nav[^>]*class="social"[^>]*>[\s\S]*?<\/nav>/i));
+  // Collect the distinct nth-child numbers and the lines for each kind of rule.
+  const find = (re) => {
+    const nums = new Set();
+    let last = 0;
+    for (const r of css) {
+      for (const sel of r.selector.split(',').map((x) => x.trim())) {
+        const m = sel.match(re);
+        if (m) { nums.add(m[1]); last = Math.max(last, r.line); }
+      }
+    }
+    return { n: nums.size, line: last };
+  };
+  const noJs = find(/^\.no-js \.pills li:nth-child\((\d+)\)$/);
+  const stagger = find(/^\.pills li:nth-child\((\d+)\)$/);
+  const icons = find(/^\.social li:nth-child\((\d+)\)$/);
+  if (projects !== noJs.n) {
+    out.push(V('list-count', 'css/home.css', noJs.line, `${projects} projects, ${noJs.n} angles`,
+      `index.html has ${projects} projects and css/home.css places ${noJs.n}.`,
+      `Add or remove a no-JS angle near line ${noJs.line}, and check the stagger near line ${stagger.line}.`));
+  }
+  if (socials !== icons.n) {
+    out.push(V('list-count', 'css/home.css', icons.line, `${socials} icons, ${icons.n} angles`,
+      `index.html has ${socials} social icons and css/home.css places ${icons.n}.`,
+      `Add or remove a social angle near line ${icons.line}.`));
+  }
+  return out;
+}
+
+// ---------- D. contrast on the wash ----------
+
+// Not 4.5: the far yellow corner measures 4.49 and holds no text. The probe clips colors outside sRGB.
+const MIN_WASH = 4.4;
+const MIN_BUTTON = 4.5;
+const MIN_PEN = 3;
+
+function contrast(src) {
+  const file = 'css/home.css';
+  const cssText = src.read(file);
+  const { base, over } = rootTokens(cssText);
+  const fail = (detail, fix) => [V('contrast', file, 0, 'unreadable', detail, fix)];
+  const color = (name) => { const d = base.get(name); return d && parseColor(d.value); };
+  const ink = color('--ink');
+  const paper = color('--paper');
+  const pen = color('--pen');
+  if (!ink || !paper || !pen) return fail('Could not read --ink, --paper, and --pen as plain colors in :root.', 'Keep them as hex values in :root.');
+
+  // A fill token resolved to { rgb, a }: the color-mix form if present, else the plain fallback.
+  const fill = (name) => {
+    const o = over.get(name);
+    const m = o && o.value.match(MIX_RE);
+    if (m) { const c = color(m[1]); return c && { rgb: c.rgb, a: Number(m[2]) / 100 }; }
+    const b = base.get(name);
+    return b && parseColor(b.value);
+  };
+  const wash = fill('--tint');
+  let button = fill('--btn-fill');
+  if (!button) {
+    const r = parseCss(cssText).find((x) => x.selector === '.ink .sk-fill.sk-btn');
+    const op = r && r.decls.find((x) => x.prop === 'fill-opacity');
+    if (op) button = { rgb: paper.rgb, a: Number(op.value) };
+  }
+  if (!wash || !button) return fail('Could not read --tint and the button fill.', 'Keep --tint and --btn-fill as rgba or color-mix values.');
+
+  const stops = ['--bg-start', '--bg-middle', '--bg-end'].map((n) => {
+    const o = over.get(n);
+    const m = o && o.value.match(OKLCH_RE);
+    if (m) return { oklch: [Number(m[1]), Number(m[2]), Number(m[3] !== undefined ? m[3] : m[4])] };
+    const b = base.get(n);
+    const c = b && parseColor(b.value);
+    return c && { rgb: c.rgb };
+  });
+  const mid = cssText.match(/var\(--bg-middle\)\s+(\d+(?:\.\d+)?)%/);
+  const sway = src.read('js/home.js').match(/HUE_SWING\s*=\s*(\d+(?:\.\d+)?)/);
+  if (stops.some((s) => !s) || !mid || !sway) return fail('Could not read the gradient stops, the middle stop position, or HUE_SWING.', 'Keep the --bg tokens, the 46% style stop, and HUE_SWING readable.');
+  const midAt = Number(mid[1]) / 100;
+  const swing = Math.ceil(Number(sway[1]));
+
+  const worst = { wash: { c: Infinity }, button: { c: Infinity }, pen: { c: Infinity } };
+  for (let hue = -swing; hue <= swing; hue++) {
+    const [s, m, e] = stops.map((k) => k.rgb || oklchToRgb(k.oklch[0], k.oklch[1], k.oklch[2] + hue));
+    for (let i = 0; i <= 200; i++) {
+      const t = i / 200;
+      const bg = t <= midAt ? mixRgb(s, m, t / midAt) : mixRgb(m, e, (t - midAt) / (1 - midAt));
+      const at = { c: 0, t, hue };
+      const note = (k, c) => { if (c < worst[k].c) worst[k] = { ...at, c }; };
+      note('wash', ratio(paper.rgb, mixRgb(bg, wash.rgb, wash.a)));
+      note('button', ratio(ink.rgb, mixRgb(bg, button.rgb, button.a)));
+      note('pen', ratio(pen.rgb, bg));
+    }
+  }
+  const out = [];
+  const rows = [
+    ['wash', MIN_WASH, 'White text on the --tint wash', 'Darken the wash (raise its percentage), lighten the text, or shrink HUE_SWING.'],
+    ['button', MIN_BUTTON, 'Ink text on the button fill', 'Make the button fill lighter or the ink darker.'],
+    ['pen', MIN_PEN, 'The black pen and label on the bare gradient', 'Lighten the gradient where it is dark, or shrink HUE_SWING.'],
+  ];
+  for (const [k, min, what, fix] of rows) {
+    const w = worst[k];
+    if (w.c < min) {
+      out.push(V('contrast', file, 0, `${k} ${w.c.toFixed(2)}`,
+        `${what} drops to ${w.c.toFixed(2)}:1 (limit ${min}:1), ${Math.round(w.t * 100)}% along the gradient with the hue at ${w.hue >= 0 ? '+' : ''}${w.hue} degrees.`, fix));
     }
   }
   return out;
@@ -379,6 +675,12 @@ function pushChecks() {
     const r = spawnSync(process.execPath, ['generate-sitemap.js', '--check'], { cwd: ROOT, encoding: 'utf8' });
     if (r.error || r.status === null) {
       out.push({ ...V('sitemap', 'sitemap.xml', 0, 'run', 'Could not run generate-sitemap.js.', 'Check that node works here.'), severity: 'error' });
+    } else if (r.status === 3) {
+      for (const w of String(r.stderr).split(/\r?\n(?=warn:)/).filter((x) => x.startsWith('warn:'))) {
+        const page = (w.match(/ on (.+?)(?:\r?\n|$)/) || [])[1] || 'a page';
+        out.push(V('canonical', page, 0, w.trim(), w.trim().replace(/\s*\r?\n\s*/g, ' '),
+          `Fix the canonical link in ${page.split('/')[0]}, commit it there, then regenerate the sitemap.`));
+      }
     } else if (r.status !== 0) {
       out.push(V('sitemap-stale', 'sitemap.xml', 0, 'stale', 'sitemap.xml is out of date.',
         'Commit page changes first, run node generate-sitemap.js, commit sitemap.xml, then push again.'));
@@ -546,7 +848,7 @@ function checkMessage(raw) {
 // ---------- modes ----------
 
 function allChecks(src) {
-  return [colorLiterals, breakpoints, archiveNoindex, linesFile, images, hooks].flatMap((fn) => {
+  return [colorLiterals, breakpoints, archiveNoindex, linesFile, straightQuotes, tokenFallback, listCount, contrast, images, hooks].flatMap((fn) => {
     try { return fn(src); } catch (e) {
       return [{ ...V('unable-to-verify', '', 0, fn.name, `${fn.name} could not run: ${e.message}`, 'Fix the cause. A check that can\'t run does not count as a pass.'), severity: 'error' }];
     }
@@ -563,10 +865,14 @@ function stagedChecks() {
     [breakpoints, ['css/home.css', 'js/home.js']],
     [archiveNoindex, ['archive/']],
     [linesFile, ['js/lines.js']],
+    [straightQuotes, ['index.html', 'js/home.js', 'archive/', 'Sentinel/']],
+    [tokenFallback, ['css/home.css']],
+    [listCount, ['index.html', 'css/home.css']],
+    [contrast, ['css/home.css', 'js/home.js']],
     [images, ['index.html', 'img/']],
     [hooks, ['.githooks/']],
   ];
-  const everything = touches('sentinel-check.js', BASELINE_FILE, EXCEPTIONS_FILE);
+  const everything = touches('.sentinel/sentinel-check.js', BASELINE_FILE, EXCEPTIONS_FILE);
   const out = [];
   for (const [fn, files] of plan) {
     if (!everything && !touches(...files)) continue;
@@ -576,6 +882,27 @@ function stagedChecks() {
   }
   out.push(...newFileKinds());
   return out;
+}
+
+// Requests every <loc> in the committed sitemap, redirects off. Manual: it needs the network and a finished deploy.
+async function probe(file) {
+  const xml = file ? fs.readFileSync(path.resolve(file), 'utf8') : git(['show', 'HEAD:sitemap.xml']);
+  const urls = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1].replace(/&amp;/g, '&'));
+  if (!urls.length) { console.error('No <loc> entries found in the sitemap.'); return 2; }
+  const bad = [];
+  for (const url of urls) {
+    try {
+      const res = await fetch(url, { redirect: 'manual', signal: AbortSignal.timeout(15000) });
+      if (res.status !== 200) bad.push(`${res.status} ${url}${res.headers.get('location') ? ' -> ' + res.headers.get('location') : ''}`);
+    } catch (e) { bad.push(`failed ${url} (${e.cause && e.cause.code ? e.cause.code : e.message})`); }
+  }
+  if (bad.length) {
+    console.error(`SENTINEL probe: ${bad.length} of ${urls.length} URL(s) did not return 200:\n  ${bad.join('\n  ')}`);
+    console.error('Fix: GitHub Pages is case-sensitive, so check the path in SITES against the real folder name, or wait for the deploy to finish.');
+    return 1;
+  }
+  console.log(`Sentinel probe: all ${urls.length} URL(s) returned 200.`);
+  return 0;
 }
 
 function main() {
@@ -604,6 +931,10 @@ function main() {
     if (mode === '--notes') {
       process.exit(report('the notes check', classify(notesChecks())));
     }
+    if (mode === '--probe') {
+      probe(arg).then((code) => process.exit(code), (e) => { console.error(`SENTINEL probe failed: ${e.message}`); process.exit(2); });
+      return;
+    }
     if (mode === '--history') {
       const n = arg || '50';
       const msgs = git(['log', '--no-merges', `-${n}`, '--format=%h%x01%B%x00']).split('\0').filter((m) => m.trim());
@@ -629,7 +960,7 @@ function main() {
       console.log(`${MANIFEST_FILE} seeded with ${readManifest().length} kinds.`);
       process.exit(0);
     }
-    console.error('Usage: node sentinel-check.js --staged | --commit-msg <file> | --push | --full | --notes | --history [n] | --write-baseline | --seed-extensions');
+    console.error('Usage: node sentinel-check.js --staged | --commit-msg <file> | --push | --full | --notes | --probe [sitemap file] | --history [n] | --write-baseline | --seed-extensions');
     process.exit(2);
   } catch (e) {
     console.error(`SENTINEL could not run its checks: ${e.message}\nThis counts as a failure. A check that can't run is never a pass.`);
@@ -643,4 +974,4 @@ function hooksPathCheck() {
 }
 
 if (require.main === module) main();
-module.exports = { checkMessage, parseCss };
+module.exports = { checkMessage, parseCss, checks: { linesFile, straightQuotes, tokenFallback, listCount, contrast } };

@@ -2,6 +2,8 @@
    The compact breakpoint must match the media query string in js/home.js. */
 
 :root {
+    /* Fallbacks for browsers without OKLCH. The real values are in the @supports block below.
+       The gate checks they match. */
     --bg-start: #4158D0;
     --bg-middle: #C850C0;
     --bg-end: #FFCC70;
@@ -12,7 +14,15 @@
     --paper: #fff;
     /* Wash behind white text. Lighter fails contrast at the yellow end. */
     --tint: rgba(28, 20, 70, 0.5);
+    --btn-fill: rgba(255, 255, 255, 0.75);
     --line: 2.5px;
+    --line-hot: 4px;
+    --focus: 3px;
+    --text-xs: 0.75rem;   /* Inside the circle. */
+    --text-s: 0.8rem;
+    --text-m: 0.88rem;
+    --text-l: 0.95rem;
+    --icon: 1.15rem;      /* Social icon glyphs. */
     --edge: 34px;   /* How far outside the ring still counts as the ring. js/home.js measures it. */
     --font: 'Atkinson Hyperlegible', sans-serif;
     --display: 'Rock Salt', cursive;
@@ -38,6 +48,14 @@ body {
         --bg-start: oklch(0.514 0.186 calc(270.3 + var(--hue, 0)));
         --bg-middle: oklch(0.628 0.2 calc(330.3 + var(--hue, 0)));
         --bg-end: oklch(0.872 0.124 calc(80.7 + var(--hue, 0)));
+    }
+}
+
+/* color-mix needs its own block: an invalid custom property value doesn't fall back. */
+@supports (color: color-mix(in srgb, red 50%, transparent)) {
+    :root {
+        --tint: color-mix(in srgb, var(--ink) 50%, transparent);
+        --btn-fill: color-mix(in srgb, var(--paper) 75%, transparent);
     }
 }
 
@@ -75,11 +93,12 @@ h1, h2, p { margin: 0; }
 
 /* Each outlined shape is a wash (sk-fill) under two pen passes (sk-stroke). */
 .ink .sk-fill { fill: var(--tint); stroke: none; }
-.ink .sk-fill.sk-btn { fill: var(--paper); fill-opacity: 0.75; }
-.ink .sk-fill.sk-btn.is-hot { fill: var(--tint); fill-opacity: 1; }
+.ink .sk-fill.sk-btn { fill: var(--btn-fill); }
+.ink .sk-fill.sk-btn.is-hot { fill: var(--tint); }
 .ink .sk-fill.sk-badge.is-hot,
 .ink .sk-fill.is-on { fill: var(--paper); }
-.ink .sk-stroke.sk-pill.is-hot { stroke-width: 4px; }
+.ink .sk-stroke.sk-pill.is-hot { stroke-width: var(--line-hot); }
+.ink .sk-stroke.is-down { stroke-width: var(--line-hot); }
 
 /* ---------- Circle ---------- */
 
@@ -178,7 +197,7 @@ h1, h2, p { margin: 0; }
 }
 
 .hub-btn:focus-visible {
-    outline: 3px solid var(--paper);
+    outline: var(--focus) solid var(--paper);
     outline-offset: -6px;
 }
 
@@ -189,7 +208,7 @@ h1, h2, p { margin: 0; }
     border: var(--line) solid var(--pen);
     background: var(--tint);
 }
-.no-js .btn { background: rgba(255, 255, 255, 0.75); }
+.no-js .btn { background: var(--btn-fill); }
 
 /* ---------- Shared pieces ---------- */
 
@@ -198,7 +217,7 @@ h1, h2, p { margin: 0; }
     display: inline-block;
     color: var(--label);
     font-family: var(--display);
-    font-size: 0.95rem;
+    font-size: var(--text-l);
     font-weight: 400;
     line-height: 1.4;
     white-space: nowrap;
@@ -227,15 +246,15 @@ h1, h2, p { margin: 0; }
     display: block;
     width: 100%;
     height: 100%;
-    border-radius: 22%;
+    border-radius: 50%;
 }
 
 /* Two-tone ring: white between two ink lines, so it shows at both ends of the gradient. */
 .pill:focus-visible,
 .social a:focus-visible {
-    outline: 3px solid var(--paper);
+    outline: var(--focus) solid var(--paper);
     outline-offset: 2px;
-    box-shadow: 0 0 0 7px var(--ink);
+    box-shadow: 0 0 0 calc(var(--focus) + 4px) var(--ink);
 }
 
 .social a {
@@ -245,9 +264,14 @@ h1, h2, p { margin: 0; }
     height: 44px;
     border-radius: 50%;
     color: var(--paper);
-    font-size: 1.15rem;
     text-decoration: none;
     touch-action: none;
+}
+
+.social a svg {
+    height: var(--icon);
+    width: auto;
+    fill: currentColor;
 }
 
 .social a:hover,
@@ -260,9 +284,12 @@ h1, h2, p { margin: 0; }
     translate: -50% -50%;
     rotate: -4deg;
     font-family: var(--display);
-    font-size: 0.8rem;
+    font-size: var(--text-s);
     line-height: 1.4;
     color: var(--note);
+    background: var(--tint);
+    padding: 3px 10px 1px;
+    border-radius: 999px;
     white-space: nowrap;
     pointer-events: none;
     opacity: 0;
@@ -291,24 +318,30 @@ h1, h2, p { margin: 0; }
 }
 
 .btn {
-    padding: 14px 24px 12px;
-    font-size: 0.82rem;
+    padding: 15px 24px 14px;
+    font-size: var(--text-s);
 }
 
-/* Hover and focus turn the text white on the dark wash. Hover is limited to devices that
-   hover, since touch leaves :hover stuck. */
+/* Focus turns the text white on the dark wash. */
 .btn:focus-visible,
-.d-open:focus-visible { color: var(--paper); }
+.d-open:focus-visible {
+    color: var(--paper);
+    outline: var(--focus) solid var(--paper);
+    outline-offset: 5px;
+}
 
+/* Hover does the same, only on devices that hover, since touch leaves :hover stuck. */
 @media (hover: hover) {
     .btn:hover,
     .d-open:hover { color: var(--paper); }
 }
 
-.btn:focus-visible,
-.d-open:focus-visible {
-    outline: 3px solid var(--paper);
-    outline-offset: 5px;
+/* Grows the tap target to 44px without changing the look. */
+.d-open { position: relative; }
+.d-open::after {
+    content: '';
+    position: absolute;
+    inset: -5px 0;
 }
 
 /* Without JavaScript the angles are not set, so five entries get fixed ones. */
@@ -385,14 +418,14 @@ h1, h2, p { margin: 0; }
         display: block;
         font-family: var(--display);
         font-weight: 400;
-        font-size: 0.8rem;
+        font-size: var(--text-s);
         line-height: 1.5;
     }
 
     .desc {
         display: block;
         margin-top: 2px;
-        font-size: 0.88rem;
+        font-size: var(--text-m);
         line-height: 1.3;
     }
 
@@ -413,7 +446,7 @@ h1, h2, p { margin: 0; }
 
 @media (max-width: 820px), (max-height: 600px) {
     .stage {
-        --size: min(100vw - 24px, 100dvh - 200px, 420px);
+        --size: min(100vw - 24px, 100dvh - 200px, 528px);
         --orbit-r: calc(var(--size) / 2 - 26px);
         --hub-r: calc(var(--orbit-r) - 38px);
         --cx: 50%;
@@ -473,19 +506,19 @@ h1, h2, p { margin: 0; }
     .d-name {
         font-family: var(--display);
         font-weight: 400;
-        font-size: 0.78rem;
+        font-size: var(--text-xs);
         line-height: 1.4;
     }
 
     .d-desc {
-        font-size: 0.78rem;
+        font-size: var(--text-xs);
         line-height: 1.3;
     }
 
     .d-open {
         margin-top: 8px;
         padding: 11px 20px 9px;
-        font-size: 0.72rem;
+        font-size: var(--text-xs);
     }
 
     .social {

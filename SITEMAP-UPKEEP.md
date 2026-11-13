@@ -10,11 +10,12 @@ Any time you add, remove, or rename a public page in any site repo, or edit a pa
 2. Commit the page change in that repo. `<lastmod>` comes from git history, so uncommitted edits don't count.
 3. In this repo: `node generate-sitemap.js`
 4. Commit `sitemap.xml` and push this repo.
+5. After the deploy finishes, run `node .sentinel/sentinel-check.js --probe`. It requests every URL in the committed sitemap and reports any that isn't a 200. GitHub Pages paths are case-sensitive, and nothing offline can see that.
 
-The script lists every git-tracked `.html` file that has a `<head>` and no noindex tag. It warns if a page has no canonical, or if the canonical differs from the URL it derived.
+The script lists every git-tracked `.html` file that has a `<head>` and no noindex tag. It warns if a page has no canonical, or if the canonical differs from the URL it derived. With `--check` (the push gate) those warnings block the push, so a bad canonical in a sibling repo has to be fixed there first.
 
 ## Pre-push gate
-`.githooks/pre-push` runs `node sentinel-check.js --push`. It blocks the push if the home page isn't committed, a sibling site folder is missing, the sitemap is stale (it still runs `node generate-sitemap.js --check`), a link on the home page or a site in `SITES` is missing from the other, a hook isn't executable, or the full scan finds a new violation. The pre-commit and commit-msg hooks run the same script. Install the hooks once per clone, because without this nothing runs:
+`.githooks/pre-push` runs `node .sentinel/sentinel-check.js --push`. It blocks the push if the home page isn't committed, a sibling site folder is missing, the sitemap is stale (it still runs `node generate-sitemap.js --check`), a link on the home page or a site in `SITES` is missing from the other, a hook isn't executable, or the full scan finds a new violation. The pre-commit and commit-msg hooks run the same script. Install the hooks once per clone, because without this nothing runs:
 
 ```
 git config core.hooksPath .githooks

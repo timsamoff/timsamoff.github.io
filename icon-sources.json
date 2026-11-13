@@ -1,0 +1,22 @@
+{
+  "circuit-scout.svg": {
+    "sha256": "7d957a0417ad5d944d40f4ed8af30e7b68819bad400f5d79817e3959164fcfd3",
+    "source": "../Circuit Scout/favicon.svg"
+  },
+  "enclosure-pro.svg": {
+    "sha256": "9b6523bf14a7976172cc7ffa57edfe5c4ccd4bd8a5224211ebfeead732992945",
+    "source": "../enclosure-pro/images/EnclosureProIcon.svg"
+  },
+  "sentinel.png": {
+    "sha256": "05995d4cb70b29ef3d1243bbd7f9ab56e724fbf1c36e10771035f7f8ad6edaf8",
+    "source": "../Sentinel/apple-touch-icon.png"
+  },
+  "sidequest.svg": {
+    "sha256": "2aa8c379fc93b5585d3c2efe9118a37b0e9348cfafd6e5f8e9814cc3d8400daa",
+    "source": "../Sidequest/assets/sidequest-icon.svg"
+  },
+  "written.png": {
+    "sha256": "1ce3a2d054241784746ccc0e567b6c813c1d0060742046c1677d0efd3df2598d",
+    "source": "prod/wbts_icon.png"
+  }
+}

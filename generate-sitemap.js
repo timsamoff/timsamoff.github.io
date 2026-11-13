@@ -1,14 +1,15 @@
 #!/usr/bin/env node
 // Regenerates sitemap.xml for samoff.com from the sibling site repos.
 // Usage (from this repo): node generate-sitemap.js
-//   node generate-sitemap.js --check   exits 1 if sitemap.xml is stale (used by the pre-push gate)
+//   node generate-sitemap.js --check   exits 1 if sitemap.xml is stale, 3 if a canonical is missing or
+//   wrong (used by the pre-push gate)
 //
 // - Scans each site's git-tracked .html files.
 // - Skips any page with a robots meta tag containing "noindex", and files
 //   with no <head> (snippets).
 // - <lastmod> is the date of the last git commit touching the file, so
 //   commit your page changes first, then run this.
-// - Warns if a page's canonical link differs from the URL derived here.
+// - Warns if a page's canonical link differs from the URL derived here. A normal run only warns.
 
 const { execFileSync } = require('child_process');
 const fs = require('fs');
@@ -35,6 +36,8 @@ const git = (dir, args) => execFileSync('git', ['-C', dir, ...args], { encoding:
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 const entries = [];
+const warnings = [];
+const warn = (msg) => { warnings.push(msg); console.warn(msg); };
 for (const site of SITES) {
   const dir = path.join(PARENT, site.folder);
   if (!fs.existsSync(dir)) { console.warn(`skip: ${site.folder} not found`); continue; }
@@ -49,8 +52,8 @@ for (const site of SITES) {
     const url = BASE + site.urlPath + rel;
 
     const canon = html.match(/<link[^>]+rel=["']canonical["'][^>]*href=["']([^"']+)["']/i);
-    if (!canon) console.warn(`warn: no canonical on ${site.folder}/${f}`);
-    else if (canon[1] !== url) console.warn(`warn: canonical mismatch on ${site.folder}/${f}\n      page: ${canon[1]}\n      here: ${url}`);
+    if (!canon) warn(`warn: no canonical on ${site.folder}/${f}`);
+    else if (canon[1] !== url) warn(`warn: canonical mismatch on ${site.folder}/${f}\n      page: ${canon[1]}\n      here: ${url}`);
 
     const lastmod = git(dir, ['log', '-1', '--format=%cs', '--', f]);
     entries.push({ url, lastmod });
@@ -73,6 +76,10 @@ if (process.argv.includes('--check')) {
   if (current !== xml) {
     console.error('sitemap.xml is out of date.');
     process.exit(1);
+  }
+  if (warnings.length) {
+    console.log(`${warnings.length} canonical problem(s) found.`);
+    process.exit(3);
   }
   console.log(`sitemap.xml is up to date (${entries.length} URLs)`);
   process.exit(0);

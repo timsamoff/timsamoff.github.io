@@ -2,4 +2,4 @@
 # Sentinel: before a push, checks the sitemap, the home page links, hook integrity, and runs the full scan.
 cd "$(git rev-parse --show-toplevel)" || exit 1
 command -v node >/dev/null 2>&1 || { echo "Sentinel: node was not found, so the push checks can't run." >&2; exit 1; }
-node sentinel-check.js --push || exit 1
+node .sentinel/sentinel-check.js --push || exit 1

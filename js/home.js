@@ -32,7 +32,12 @@
   const dDesc = detail.querySelector('.d-desc');
   const dOpen = detail.querySelector('.d-open');
   const say = hub.querySelector('.hub-say');
-  const hubBtn = hub.querySelector('.hub-btn');
+  // Made here so there is no dead button when the script doesn't run.
+  const hubBtn = document.createElement('button');
+  hubBtn.className = 'hub-btn';
+  hubBtn.type = 'button';
+  hubBtn.setAttribute('aria-label', 'More about Tim');
+  say.after(hubBtn);
   // Lines come from js/lines.js, shuffled once per load (Fisher-Yates).
   const lines = (window.HOME_LINES || []).filter((l) => typeof l === 'string' && l.trim());
   for (let i = lines.length - 1; i > 0; i--) {
@@ -76,6 +81,13 @@
       s.fill.classList.toggle('is-hot', on);
       s.stroke.classList.toggle('is-hot', on);
     };
+    // A heavier line while pressed, so a tap gets an answer.
+    const down = (on) => {
+      s.fill.classList.toggle('is-down', on);
+      s.stroke.classList.toggle('is-down', on);
+    };
+    el.addEventListener('pointerdown', () => down(true));
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach((t) => el.addEventListener(t, () => down(false)));
     onHot(el, hot);
     shapes.push(s);
     return s;

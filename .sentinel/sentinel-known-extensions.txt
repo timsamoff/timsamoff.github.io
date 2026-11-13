@@ -13,6 +13,7 @@
 .pdf
 .png
 .psd
+.py
 .svg
 .txt
 .xml

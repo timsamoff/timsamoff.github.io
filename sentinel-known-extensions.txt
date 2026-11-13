@@ -1,0 +1,18 @@
+# Every file extension this project has contained. The commit check adds new ones.
+(none)
+.css
+.gitattributes
+.gitignore
+.hrml
+.htaccess
+.html
+.ico
+.js
+.json
+.md
+.pdf
+.png
+.psd
+.svg
+.txt
+.xml

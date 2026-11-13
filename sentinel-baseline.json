@@ -1,0 +1,22 @@
+[
+  {
+    "rule": "color-literal",
+    "file": "css/home.css",
+    "match": "rgba(255, 255, 255, 0.75)",
+    "note": "\"rgba(255, 255, 255, 0.75)\" is a color written outside the :root block."
+  },
+  {
+    "rule": "img-oversize",
+    "file": "img/sentinel.png",
+    "match": "img/sentinel.png shown at 40px",
+    "px": 180,
+    "note": "img/sentinel.png is 180px wide but shown at 40px (limit is twice that: 80px)."
+  },
+  {
+    "rule": "img-oversize",
+    "file": "img/written.png",
+    "match": "img/written.png shown at 40px",
+    "px": 180,
+    "note": "img/written.png is 180px wide but shown at 40px (limit is twice that: 80px)."
+  }
+]

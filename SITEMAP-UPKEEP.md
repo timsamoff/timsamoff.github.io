@@ -14,7 +14,7 @@ Any time you add, remove, or rename a public page in any site repo, or edit a pa
 The script lists every git-tracked `.html` file that has a `<head>` and no noindex tag. It warns if a page has no canonical, or if the canonical differs from the URL it derived.
 
 ## Pre-push gate
-`.githooks/pre-push` runs `node generate-sitemap.js --check` and blocks the push if the sitemap is stale. Install it once per clone:
+`.githooks/pre-push` runs `node sentinel-check.js --push`. It blocks the push if the home page isn't committed, a sibling site folder is missing, the sitemap is stale (it still runs `node generate-sitemap.js --check`), a link on the home page or a site in `SITES` is missing from the other, a hook isn't executable, or the full scan finds a new violation. The pre-commit and commit-msg hooks run the same script. Install the hooks once per clone, because without this nothing runs:
 
 ```
 git config core.hooksPath .githooks
@@ -27,5 +27,6 @@ Add `{ folder, urlPath }` to `SITES` in `generate-sitemap.js` (Ryewired is there
 
 ## Notes
 - Sibling repos must sit next to this one in the same parent folder, under the names in `SITES`.
+- Any page under `archive/` needs `<meta name="robots" content="noindex">`, or the script lists it. The pre-commit check enforces this.
 - This file is served as plain text at samoff.com/SITEMAP-UPKEEP.md. It isn't linked or in the sitemap. Move it out of the repo if you'd rather it not be public.
 - Submit `https://samoff.com/sitemap.xml` in Google Search Console once. Google rereads it on its own after that.

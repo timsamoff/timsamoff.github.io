@@ -1,10 +1,5 @@
 #!/bin/sh
-# Blocks a push of this repo if sitemap.xml is stale relative to the sibling site repos.
-cd "$(git rev-parse --show-toplevel)" || exit 0
-
-if ! node generate-sitemap.js --check; then
-  echo ""
-  echo "Sitemap gate: run 'node generate-sitemap.js', commit sitemap.xml, then push again."
-  echo "(Commit changes in the other site repos first, so lastmod dates are current.)"
-  exit 1
-fi
+# Sentinel: before a push, checks the sitemap, the home page links, hook integrity, and runs the full scan.
+cd "$(git rev-parse --show-toplevel)" || exit 1
+command -v node >/dev/null 2>&1 || { echo "Sentinel: node was not found, so the push checks can't run." >&2; exit 1; }
+node sentinel-check.js --push || exit 1

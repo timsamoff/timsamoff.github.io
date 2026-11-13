@@ -1,0 +1,4 @@
+{
+  "_note": "Standing exceptions. Each entry needs: rule, file, match (the exact text exempted, not a line number), reason, owner, reviewBy (YYYY-MM-DD). An expired entry blocks like no entry. Agents propose entries and never add them.",
+  "exceptions": []
+}

@@ -269,10 +269,15 @@ h1, h2, p { margin: 0; }
 }
 
 .social a svg {
-    height: var(--icon);
+    height: calc(var(--icon) * var(--icon-scale, 1));
     width: auto;
     fill: currentColor;
 }
+
+/* GitHub, itch.io, and Instagram read small next to LinkedIn at the same height. */
+.social a[aria-label="GitHub"],
+.social a[aria-label="itch.io"] { --icon-scale: 1.1; }
+.social a[aria-label="Instagram"] { --icon-scale: 1.15; }
 
 .social a:hover,
 .social a:focus-visible { color: var(--ink); }
@@ -289,7 +294,7 @@ h1, h2, p { margin: 0; }
     color: var(--note);
     background: var(--tint);
     padding: 3px 10px 1px;
-    border-radius: 999px;
+    border-radius: 0;
     white-space: nowrap;
     pointer-events: none;
     opacity: 0;

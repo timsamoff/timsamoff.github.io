@@ -15,6 +15,12 @@
         location.replace("https://sidequest.offware.io" + (a[1] || "/") + location.search + location.hash);
         return;
       }
+      // Circuit Scout moved to its own subdomain.
+      var c = location.pathname.match(/^\/circuit-scout(\/.*)?$/i);
+      if (c) {
+        location.replace("https://circuit-scout.offware.io" + (c[1] || "/") + location.search + location.hash);
+        return;
+      }
       var m = location.pathname.match(/^\/(sentinel|sidequest|enclosure-pro)(\/.*)?$/i);
       if (m) {
         location.replace("https://offware.io/" + m[1].toLowerCase() + (m[2] || "/") + location.search + location.hash);

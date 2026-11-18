@@ -25,7 +25,6 @@ const SITES = [
   { folder: 'timsamoff.github.io', urlPath: '/' },
   { folder: 'written',             urlPath: '/written/' },
   { folder: 'portfolio',           urlPath: '/portfolio/' },
-  { folder: 'Circuit Scout',       urlPath: '/circuit-scout/' },
   // { folder: 'Ryewired',         urlPath: '/ryewired/' },
 ];
 

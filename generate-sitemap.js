@@ -26,9 +26,6 @@ const SITES = [
   { folder: 'written',             urlPath: '/written/' },
   { folder: 'portfolio',           urlPath: '/portfolio/' },
   { folder: 'Circuit Scout',       urlPath: '/circuit-scout/' },
-  { folder: 'enclosure-pro',       urlPath: '/enclosure-pro/' },
-  { folder: 'Sentinel',            urlPath: '/sentinel/' },
-  { folder: 'Sidequest',           urlPath: '/sidequest/', exclude: ['Sidequest-App/', 'app/sidequest.html', 'production/'] },
   // { folder: 'Ryewired',         urlPath: '/ryewired/' },
 ];
 

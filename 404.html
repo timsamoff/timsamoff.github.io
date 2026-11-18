@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Page not found</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <script>
+    // Projects that moved to offware.io keep the same paths. Send any old
+    // samoff.com URL under those paths to the same path on offware.io.
+    (function () {
+      // The Sidequest app moved to its own subdomain.
+      var a = location.pathname.match(/^\/sidequest\/app(\/.*)?$/i);
+      if (a) {
+        location.replace("https://sidequest.offware.io" + (a[1] || "/") + location.search + location.hash);
+        return;
+      }
+      var m = location.pathname.match(/^\/(sentinel|sidequest|enclosure-pro)(\/.*)?$/i);
+      if (m) {
+        location.replace("https://offware.io/" + m[1].toLowerCase() + (m[2] || "/") + location.search + location.hash);
+      }
+    })();
+  </script>
+</head>
+<body>
+  <p>Page not found. <a href="https://samoff.com/">Go to samoff.com</a>.</p>
+</body>
+</html>

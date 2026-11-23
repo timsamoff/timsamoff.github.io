@@ -1,5 +1,5 @@
-// Lines for the center circle: one per row, in quotes, with a comma. Shuffled on each load.
-// Long lines wrap by themselves. Type \n to force a break.
+// Center circle lines, one per row, in quotes with a comma; shuffled on each load.
+// Use curly quotes and apostrophes (’ “ ”) inside a line, and type \n to force a break.
 
 window.HOME_LINES = [
 "I make films.",

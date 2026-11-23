@@ -18,10 +18,10 @@ PNG_SIZE = 80
 
 # Output name in img/ -> source path relative to the repo root.
 ICONS = {
-    "sidequest.svg": "../Sidequest/assets/sidequest-icon.svg",
-    "enclosure-pro.svg": "../enclosure-pro/images/EnclosureProIcon.svg",
-    "circuit-scout.svg": "../Circuit Scout/favicon.svg",
-    "sentinel.png": "../Sentinel/apple-touch-icon.png",
+    "sidequest.svg": "../../_offware/Sidequest/assets/sidequest-icon.svg",
+    "enclosure-pro.svg": "../../_offware/enclosure-pro/images/EnclosureProIcon.svg",
+    "circuit-scout.svg": "../../_offware/Circuit Scout/favicon.svg",
+    "sentinel.png": "../../_offware/Sentinel/apple-touch-icon.png",
     "written.png": "prod/wbts_icon.png",
 }
 

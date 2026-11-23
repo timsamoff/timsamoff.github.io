@@ -5,6 +5,7 @@
 'use strict';
 
 const { spawnSync } = require('child_process');
+const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -692,6 +693,22 @@ function homeHrefs(html) {
     .map((h) => (h.endsWith('/') || /\.\w+$/.test(h) ? h : h + '/'));
 }
 
+// Warns, never blocks: a sibling repo changing its icon isn't an error in this repo.
+function iconDrift() {
+  const manifest = readJson('icon-sources.json', null);
+  if (!manifest) return ['icon-sources.json is missing. Run: python refresh-icons.py'];
+  const out = [];
+  for (const [name, { source, sha256 }] of Object.entries(manifest)) {
+    const file = path.join(ROOT, source);
+    if (!fs.existsSync(file)) { out.push(`img/${name}: source ${source} isn't there, so drift can't be checked.`); continue; }
+    const now = crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+    if (now !== sha256) out.push(`img/${name} is out of date: ${source} changed. Run: python refresh-icons.py`);
+  }
+  return out;
+}
+
+const printWarnings = (list) => list.forEach((w) => console.log(`Sentinel warning: ${w}`));
+
 function pushChecks() {
   const out = [];
   const head = makeSource('head');
@@ -959,10 +976,12 @@ function main() {
     }
     if (mode === '--push') {
       const result = classify([...pushChecks(), ...allChecks(makeSource('head'))]);
+      printWarnings(iconDrift());
       process.exit(report('this push', result));
     }
     if (mode === '--full') {
       const result = classify([...allChecks(makeSource('index')), ...hooksPathCheck()]);
+      printWarnings(iconDrift());
       process.exit(report('the full scan', result));
     }
     if (mode === '--notes') {
